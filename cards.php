@@ -4,6 +4,9 @@
 
 <?php
 
+	ini_set('display_errors', 'On');
+	error_reporting(E_ALL | E_STRICT);
+
 	class Card{
 		public $value_num;
 		public $suit_num;
@@ -111,6 +114,22 @@
 	    	array_unshift($this->cards, $card);
 	    }
 
+	    // Give spoils to winning deck
+	    function give_spoils($spoils){
+	    	while (count($spoils) > 0) {
+	    		$card = array_pop($spoils);
+	    		array_push($this->cards, $card);
+	    	}
+	    }
+
+	    // Give cards to victor
+	    function forfeit($victor){
+	    	while (count($this->cards) > 0 ) {
+	    		$card = $this->draw();
+	    		$victor->add_card($card);
+	    	}
+	    }
+
 	    // Count cards in deck
 	    function card_count(){
 	    	return count($this->cards);
@@ -135,21 +154,77 @@
 		$right_card = $right_deck->draw();
 		echo "<div class ='match'> Match " . $i . ": " . $left_card->to_str() . " vs. " . $right_card->to_str() . "<br/>";
 
+		// Left wins basic fight
 		if ($left_card->compare($right_card) == 1) {
 			echo "<span class='left'>Left Deck wins</span></div>";
 			$left_deck->add_card($left_card);
 			$left_deck->add_card($right_card);
 		}
+
+		// Right wins basic fight
 		else if ($left_card->compare($right_card) == -1){
 			echo "<span class='right'>Right Deck wins</span></div>";
 			$right_deck->add_card($right_card);
 			$right_deck->add_card($left_card);
 		}
+
+		// War
 		else{
-			echo "It's a <span class='tie'>Tie</span>!</div>";
+			echo "It's <span class='war'>WAR</span>!</div>";
+			$spoils = array();
+
+			// Add initial cards to the pile
+			array_push($spoils, $left_card);
+			array_push($spoils, $right_card);
+
+			// Make sure each side can fight
+			if ($left_deck->card_count() > 3 && $right_deck->card_count() > 3) {
+
+				// Throw three extras into the pile
+				for ($j=0; $j < 3; $j++) { 
+					$left_tribute = $left_deck->draw();
+					$right_tribute = $right_deck->draw();
+					echo "<div><span class='left'>Left Deck</span> adds " . $left_tribute->to_str() . ", <span class='right'>Right Deck</span> adds " . $right_tribute->to_str() . "</div>";
+					array_push($spoils, $left_tribute);
+					array_push($spoils, $right_tribute);
+				}
+
+				// Cards to represent eeach deck in war
+				$left_card = $left_deck->draw();
+				$right_card = $right_deck->draw();
+				echo "<div class ='match'> War: " . $left_card->to_str() . " vs. " . $right_card->to_str() . "<br/>";
+
+				// Left wins the war
+				if ($left_card->compare($right_card) == 1){
+					echo "<span class='left'>Left Deck wins</span></div>";
+					array_push($spoils, $left_card);
+					array_push($spoils, $right_card);
+					$left_deck->give_spoils($spoils);
+
+				// Right wins the war
+				}else{
+					echo "<span class='right'>Right Deck wins</span></div>";
+					array_push($spoils, $left_card);
+					array_push($spoils, $right_card);
+					$right_deck->give_spoils($spoils);
+				}
+			}
+
+			// Someone can't fight
+			else if ($left_deck->card_count() <= 3){
+				echo "but left deck can't fight!";
+				$right_deck->give_spoils($spoils);
+				$left_deck->forfeit($right_deck);
+			}
+			else{
+				echo "but right deck can't fight!";
+				$left_deck->give_spoils($spoils);
+				$right_deck->forfeit($left_deck);
+			}
+
 		}
 
-		echo "<div class='score'> Score is <span class='left'>Left Deck: " . $left_deck->card_count() . " cards</span>, <span class='right'>Right Deck: " . $right_deck->card_count() . " cards</span></div>";
+		echo "<div class='score'> Standings: <span class='left'>Left Deck " . $left_deck->card_count() . " cards</span>, <span class='right'>Right Deck " . $right_deck->card_count() . " cards</span></div>";
 	}
 
 	if ($left_deck->card_count()) {
