@@ -57,17 +57,30 @@
 
 		public $points;
 
-		function __construct(){
+		function __construct($full_deck){
 			$this->cards = array();
 			$this->points = 0;
 
-			// Create each card in a deck
-			for ($i=0; $i < count(Card::$suits); $i++) { 
-				for ($j=0; $j < count(Card::$values); $j++) { 
-					$new_card = new Card($j, $i);
-					array_push($this->cards, $new_card);
+			// Create each card in a deck if needed
+			if($full_deck){
+				for ($i=0; $i < count(Card::$suits); $i++) { 
+					for ($j=0; $j < count(Card::$values); $j++) { 
+						$new_card = new Card($j, $i);
+						array_push($this->cards, $new_card);
+					}
 				}
 			}
+	    }
+
+	    // Deal cards in each deck
+	    function deal($left_deck, $right_deck){
+	    	while (count($this->cards) > 1) {
+	    		$card1 = array_pop($this->cards);
+	    		$card2 = array_pop($this->cards);
+	    		array_push($left_deck->cards, $card1);
+	    		array_push($right_deck->cards, $card2);
+	    	}
+
 	    }
 
 	    // Print deck info for dev purposes 
@@ -78,6 +91,7 @@
 	    	}
 	    }
 
+	    // Add a point to the deck's score
 	    function add_point(){
 	    	$this->points = $this->points + 1;
 	    }
@@ -92,45 +106,55 @@
 	    	return array_pop($this->cards);
 	    }
 
+	    // Add card to deck
+	    function add_card($card){
+	    	array_unshift($this->cards, $card);
+	    }
+
 	    // Count cards in deck
 	    function card_count(){
 	    	return count($this->cards);
 	    }
 	}
 
-	// create Decks and shuffle
-	$left_deck = new Deck();
-	$left_deck->shuffle();
+	// source deck
+	$source_deck = new Deck(true);
+	// player decks
+	$left_deck = new Deck(false);
+	$right_deck = new Deck(false);
 
-	$right_deck = new Deck();
-	$right_deck->shuffle();
+	$source_deck->shuffle();
+	$source_deck->deal($left_deck, $right_deck);
 
 
 	// Play war
 	$i = 0;
-	while ($left_deck->card_count() > 0) {
+	while ($left_deck->card_count() > 0 && $right_deck->card_count()) {
 		$i++;
-		echo "<div class='score'> Score is <span class='left'>Left Deck: " . $left_deck->points . "</span>, <span class='right'>Right Deck: " . $right_deck->points . "</span></div>";
 		$left_card = $left_deck->draw();
 		$right_card = $right_deck->draw();
 		echo "<div class ='match'> Match " . $i . ": " . $left_card->to_str() . " vs. " . $right_card->to_str() . "<br/>";
 
 		if ($left_card->compare($right_card) == 1) {
 			echo "<span class='left'>Left Deck wins</span></div>";
-			$left_deck->add_point();
+			$left_deck->add_card($left_card);
+			$left_deck->add_card($right_card);
 		}
 		else if ($left_card->compare($right_card) == -1){
 			echo "<span class='right'>Right Deck wins</span></div>";
-			$right_deck->add_point();
+			$right_deck->add_card($right_card);
+			$right_deck->add_card($left_card);
 		}
 		else{
 			echo "It's a <span class='tie'>Tie</span>!</div>";
 		}
+
+		echo "<div class='score'> Score is <span class='left'>Left Deck: " . $left_deck->card_count() . " cards</span>, <span class='right'>Right Deck: " . $right_deck->card_count() . " cards</span></div>";
 	}
 
-	if ($left_deck->points > $right_deck->points) {
+	if ($left_deck->card_count()) {
 		echo "<h2><span class='left'>Left Deck wins!</span></h2>";
-	}elseif ($left_deck->points < $right_deck->points) {
+	}elseif ($right_deck->card_count()) {
 		echo "<h2><span class='right'>Right Deck wins!</span></h2>";
 	}else{
 		echo "<h2><span class='tie'>It was a Tie!</span></h2>";
