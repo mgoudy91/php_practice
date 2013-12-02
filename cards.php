@@ -3,38 +3,56 @@
 <?php
 
 	class Card{
-		public $value;
-		public $figure;
+		public $value_num;
+		public $suit_num;
 
-		function __construct($value, $figure){
-			$this->value = $value;
-			$this->figure = $figure;
+		public static $suits = array(0=>"spades", 1=>"hearts", 2=>"clubs", 3=>"diamonds");
+		public static $values = array("ace", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "jack", "queen", "king");
+
+		function __construct($value_num, $suit_num){
+			$this->value_num = $value_num;
+			$this->suit_num = $suit_num;
 	    }
 
+	    // Greater than
+	    // function greater_than($other_card){
+	    // 	if ($this->) {
+	    // 		# code...
+	    // 	}
+	    // }
+
+	    //Print Card info
 		function to_str(){
-			return "The " . $this->value . " of " . $this->figure . "<br/>";
+			return "The " . $this->card_number() . " of " . $this->card_suit();
+		}
+
+		// Get string of number
+		function card_number(){
+			return Card::$values[$this->value_num];
+		}
+
+		// Get string of name
+		function card_suit(){
+			return Card::$suits[$this->suit_num];
 		}
 	}
 
 	class Deck{
 		private $cards;
 
-		private $suits = array("spades", "hearts", "clubs", "diamonds");
-		private $values = array("ace", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "jack", "queen", "king");
-
-
 		function __construct(){
 			$this->cards = array();
 
-			foreach ($this->suits as $suit) {
-				foreach ($this->values as $value) {
-					$new_card = new Card($value, $suit);
+			// Create each card in a deck
+			for ($i=0; $i < count(Card::$suits); $i++) { 
+				for ($j=0; $j < count(Card::$values); $j++) { 
+					$new_card = new Card($j, $i);
 					array_push($this->cards, $new_card);
 				}
 			}
-
 	    }
 
+	    // Print deck info for dev purposes 
 	    function deck_dump(){
 	    	echo "Card count: " . count($this->cards) . "<br/>";
 	    	foreach ($this->cards as $card) {
@@ -42,17 +60,31 @@
 	    	}
 	    }
 
+	    // Shuffle deck
 	    function shuffle(){
 	    	shuffle($this->cards);
 	    }
 
+	    // Draw a card
 	    function draw(){
 	    	return array_pop($this->cards);
 	    }
 	}
 
-	$my_deck = new Deck();
-	$my_deck->shuffle();
-	echo $my_deck->draw()->to_str();
+	// create Decks and shuffle
+	$left_deck = new Deck();
+	$left_deck->shuffle();
+
+	$right_deck = new Deck();
+	$right_deck->shuffle();
+
+
+	// Play war
+	while (count($left_deck) > 0) {
+		$left_card = $left_deck->draw();
+		$right_card = $right_deck->draw();
+		echo $left_card->to_str() . " vs. " . $right_card->to_str() . " <br/>";
+	}
+	
 
 ?>
