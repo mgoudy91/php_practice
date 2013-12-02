@@ -1,4 +1,6 @@
-<h1>PHP cards demo</h1>
+<h1>PHP war demo</h1>
+
+<link rel="stylesheet" type="text/css" href="cardstyle.css">
 
 <?php
 
@@ -6,20 +8,33 @@
 		public $value_num;
 		public $suit_num;
 
-		public static $suits = array(0=>"spades", 1=>"hearts", 2=>"clubs", 3=>"diamonds");
-		public static $values = array("ace", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "jack", "queen", "king");
+		public static $suits = array("spades", "hearts", "clubs", "diamonds");
+		public static $values = array( "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "jack", "queen", "king", "ace");
 
 		function __construct($value_num, $suit_num){
 			$this->value_num = $value_num;
 			$this->suit_num = $suit_num;
 	    }
 
-	    // Greater than
-	    // function greater_than($other_card){
-	    // 	if ($this->) {
-	    // 		# code...
-	    // 	}
-	    // }
+	    // Compare cards
+	    // return 1 if this card is greater, -1 if other_card is greater, 0 if same
+	    function compare($other_card){
+
+	    	// This greater
+	    	if (($this->value_num) > ($other_card->value_num)) {
+	    		return 1;
+	    	}
+
+	    	// Other greater
+	    	else if (($this->value_num) < ($other_card->value_num)) {
+	    		return -1;
+	    	}
+
+	    	// Equal
+	    	else{
+	    		return 0;
+	    	}
+	    }
 
 	    //Print Card info
 		function to_str(){
@@ -40,8 +55,11 @@
 	class Deck{
 		private $cards;
 
+		public $points;
+
 		function __construct(){
 			$this->cards = array();
+			$this->points = 0;
 
 			// Create each card in a deck
 			for ($i=0; $i < count(Card::$suits); $i++) { 
@@ -60,6 +78,10 @@
 	    	}
 	    }
 
+	    function add_point(){
+	    	$this->points = $this->points + 1;
+	    }
+
 	    // Shuffle deck
 	    function shuffle(){
 	    	shuffle($this->cards);
@@ -68,6 +90,11 @@
 	    // Draw a card
 	    function draw(){
 	    	return array_pop($this->cards);
+	    }
+
+	    // Count cards in deck
+	    function card_count(){
+	    	return count($this->cards);
 	    }
 	}
 
@@ -80,11 +107,33 @@
 
 
 	// Play war
-	while (count($left_deck) > 0) {
+	$i = 0;
+	while ($left_deck->card_count() > 0) {
+		$i++;
+		echo "<div class='score'> Score is <span class='left'>Left Deck: " . $left_deck->points . "</span>, <span class='right'>Right Deck: " . $right_deck->points . "</span></div>";
 		$left_card = $left_deck->draw();
 		$right_card = $right_deck->draw();
-		echo $left_card->to_str() . " vs. " . $right_card->to_str() . " <br/>";
+		echo "<div class ='match'> Match " . $i . ": " . $left_card->to_str() . " vs. " . $right_card->to_str() . "<br/>";
+
+		if ($left_card->compare($right_card) == 1) {
+			echo "<span class='left'>Left Deck wins</span></div>";
+			$left_deck->add_point();
+		}
+		else if ($left_card->compare($right_card) == -1){
+			echo "<span class='right'>Right Deck wins</span></div>";
+			$right_deck->add_point();
+		}
+		else{
+			echo "It's a <span class='tie'>Tie</span>!</div>";
+		}
 	}
-	
+
+	if ($left_deck->points > $right_deck->points) {
+		echo "<h2><span class='left'>Left Deck wins!</span></h2>";
+	}elseif ($left_deck->points < $right_deck->points) {
+		echo "<h2><span class='right'>Right Deck wins!</span></h2>";
+	}else{
+		echo "<h2><span class='tie'>It was a Tie!</span></h2>";
+	}
 
 ?>

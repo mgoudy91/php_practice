@@ -1,0 +1,19 @@
+body{
+	background-color:#CAB5BD;
+}
+
+.score{
+	padding-bottom: 10px;
+}
+
+.left{
+	color: red;
+}
+
+.right{
+	color: green;
+}
+
+.tie{
+	color: yellow;
+}
